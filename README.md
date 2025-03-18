@@ -10,3 +10,5 @@ As my first WCH CH32V project, I decided to read the temperature information of 
 Ported existing **onewire.c** and **ds18b20.c** code from https://github.com/lamik/DS18B20_STM32_HAL to CH32V003 using [Embeetle IDE](https://www.embeetle.com/).
 
 Enjoy!
+
+----- Changed folder structure to be suitable for platformio

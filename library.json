@@ -1,0 +1,28 @@
+{
+  "name": "DS18B20_CH32V",
+  "version": "0.0.1",
+  "description": "DS18B20 with one wire implementation",
+  "keywords": [ 
+    "CH32",
+    "iot"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jordan-Szwejda/DS18B20_CH32V"
+  },
+  "frameworks": [ 
+    "noneos-sdk"
+  ],
+  "platforms": [
+    "ch32v"
+  ],
+  "dependencies": [
+  ],
+  "examples": [ 
+  ],
+    "export": { 
+        "include": [ 
+            "include"
+        ]
+    }
+}
