@@ -75,7 +75,7 @@ typedef enum {
 //
 
 // 	Init
-void		DS18B20_Init(DS18B20_Resolution_t resolution);
+void		DS18B20_Init(DS18B20_Resolution_t resolution,  GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin);
 //	Settings
 uint8_t 	DS18B20_GetResolution(uint8_t number); // Get the sensor resolution
 uint8_t 	DS18B20_SetResolution(uint8_t number, DS18B20_Resolution_t resolution);	// Set the sensor resolution
