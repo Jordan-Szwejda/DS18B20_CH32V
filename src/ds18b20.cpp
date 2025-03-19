@@ -275,7 +275,7 @@ uint8_t DS18B20_GetTemperature(uint8_t number, float* destination)
 void DS18B20_Init(DS18B20_Resolution_t resolution,  GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
 {
 	uint8_t next = 0, i = 0, j;
-	OneWire_Init(&OneWire, GPIOx, GPIO_Pin); // Init OneWire bus
+	OneWire_Init(&OneWire, GPIOx, GPIO_Pin, false); // Init OneWire bus with internal pullup (30k)
 
 	next = OneWire_First(&OneWire); // Search first OneWire device
 	while(next)
@@ -294,5 +294,3 @@ void DS18B20_Init(DS18B20_Resolution_t resolution,  GPIO_TypeDef* GPIOx, uint16_
 		DS18B20_StartAll(); // Start conversion on all sensors
 	}
 }
-
-

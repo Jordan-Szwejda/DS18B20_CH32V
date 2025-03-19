@@ -23,6 +23,7 @@
 typedef struct {
 	GPIO_TypeDef* GPIOx;           // Bus GPIO Port
 	uint16_t GPIO_Pin;             // Bus GPIO Pin
+	bool externalPullup;		   // whether use external pullup resistor or not
 	uint8_t LastDiscrepancy;       // For searching purpose
 	uint8_t LastFamilyDiscrepancy; // For searching purpose
 	uint8_t LastDeviceFlag;        // For searching purpose
@@ -49,7 +50,7 @@ typedef struct {
 //
 // Initialisation
 //
-void OneWire_Init(OneWire_t* OneWireStruct, GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin);
+void OneWire_Init(OneWire_t* OneWireStruct, GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, bool externalPullup);
 
 //
 // Reset bus

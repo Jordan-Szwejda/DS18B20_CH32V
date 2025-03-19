@@ -26,15 +26,30 @@ void OneWire_Delay(uint16_t us)
   Delay_Us(us);
 }
 
+uint32_t GPIOToAPB2Periph(GPIO_TypeDef* GPIOx) {
+    if (GPIOx == GPIOA) {
+        return RCC_APB2Periph_GPIOA;
+    } else if (GPIOx == GPIOC) {
+        return RCC_APB2Periph_GPIOC;
+    } else if (GPIOx == GPIOD) {
+        return RCC_APB2Periph_GPIOD;
+    } 
+	return RCC_APB2Periph_GPIOA; // should not happen
+}
+
+
 //
 //	Bus direction control
 //
 void OneWire_BusInputDirection(OneWire_t *onewire)
 {
 	GPIO_InitTypeDef	GPIO_InitStruct = {0};
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
-	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN_FLOATING; // Set as input
-	//GPIO_InitStruct.Pull = GPIO_NOPULL; // No pullup - the pullup resistor is external
+  	RCC_APB2PeriphClockCmd(GPIOToAPB2Periph(onewire->GPIOx), ENABLE);
+	if(onewire->externalPullup) {
+		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IN_FLOATING; // Set as input with external pullup
+	} else {
+		GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IPU; // Set as input with pull up on microcontroler's resistor
+	}
 	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz; // Medium GPIO frequency
 	GPIO_InitStruct.GPIO_Pin = onewire->GPIO_Pin; // Pin for 1-Wire bus
 	GPIO_Init(onewire->GPIOx, &GPIO_InitStruct); // Reinitialize
@@ -43,9 +58,8 @@ void OneWire_BusInputDirection(OneWire_t *onewire)
 void OneWire_BusOutputDirection(OneWire_t *onewire)
 {
 	GPIO_InitTypeDef	GPIO_InitStruct = {0};
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
+  	RCC_APB2PeriphClockCmd(GPIOToAPB2Periph(onewire->GPIOx), ENABLE);
 	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_Out_PP; // Set as Output
-	//GPIO_InitStruct.Pull = GPIO_NOPULL; // No pullup - the pullup resistor is external
 	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz; // Medium GPIO frequency
 	GPIO_InitStruct.GPIO_Pin = onewire->GPIO_Pin; // Pin for 1-Wire bus
 	GPIO_Init(onewire->GPIOx, &GPIO_InitStruct); // Reinitialize
@@ -371,12 +385,13 @@ uint8_t OneWire_CRC8(uint8_t *addr, uint8_t len) {
 //
 //	1-Wire initialization
 //
-void OneWire_Init(OneWire_t* onewire, GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
+void OneWire_Init(OneWire_t* onewire, GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, bool externalPullup)
 {
 	//HAL_TIM_Base_Start(&_DS18B20_TIMER); // Start the delay timer
 
 	onewire->GPIOx = GPIOx; // Save 1-wire bus pin
 	onewire->GPIO_Pin = GPIO_Pin;
+	onewire->externalPullup = externalPullup;
 
 	// 1-Wire bit bang initialization
 	OneWire_BusOutputDirection(onewire);
