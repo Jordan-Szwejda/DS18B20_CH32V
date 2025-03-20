@@ -58,14 +58,13 @@ void DS18B20_StartAll()
 //
 //	Read one sensor
 //
-uint8_t DS18B20_Read(uint8_t number, float *destination)
+uint8_t DS18B20_Read(uint8_t number, int16_t *destination)
 {
 	if( number >= TempSensorCount) // If read sensor is not availible
 		return 0;
 
-	uint16_t temperature;
+	int16_t temperature;
 	uint8_t resolution;
-	float result;
 	uint8_t i = 0;
 	uint8_t data[DS18B20_DATA_LEN];
 #ifdef _DS18B20_USE_CRC
@@ -73,6 +72,7 @@ uint8_t DS18B20_Read(uint8_t number, float *destination)
 
 #endif
 
+	ds18b20[number].ValidDataFlag = 0;
 	
 	if (!DS18B20_Is((uint8_t*)&ds18b20[number].Address)) // Check if sensor is DS18B20 family
 		return 0;
@@ -93,7 +93,8 @@ uint8_t DS18B20_Read(uint8_t number, float *destination)
 	if (crc != data[8])
 		return 0; // CRC invalid
 #endif
-	temperature = data[0] | (data[1] << 8); // Temperature is 16-bit length
+	uint8_t lsb = data[0];
+	uint8_t msb = data[1];
 
 	OneWire_Reset(&OneWire); // Reset the bus
 	
@@ -102,22 +103,28 @@ uint8_t DS18B20_Read(uint8_t number, float *destination)
 	switch (resolution) // Chceck the correct value dur to resolution
 	{
 		case DS18B20_Resolution_9bits:
-			result = temperature*(float)DS18B20_STEP_9BIT;
-		break;
+			lsb &= 0xF8;
+			break;
 		case DS18B20_Resolution_10bits:
-			result = temperature*(float)DS18B20_STEP_10BIT;
-		 break;
+			lsb &= 0xFC;
+			 break;
 		case DS18B20_Resolution_11bits:
-			result = temperature*(float)DS18B20_STEP_11BIT;
-		break;
-		case DS18B20_Resolution_12bits:
-			result = temperature*(float)DS18B20_STEP_12BIT;
-		 break;
-		default: 
-			result = 0xFF;
+			lsb &= 0xFE;
+			break;
 	}
 	
-	*destination = result;
+    uint8_t sign = msb & 0x80;
+    int16_t temp = (msb << 8) + lsb;
+
+	if (sign) {
+        temp = ((temp ^ 0xffff) + 1) * -1;
+    }
+
+	ds18b20[number].Temperature = temp;
+	ds18b20[number].ValidDataFlag = 1;
+	if(destination) {
+		*destination = temp;
+	}
 	
 	return 1; //temperature valid
 }
@@ -229,7 +236,7 @@ void DS18B20_ReadAll(void)
 
 			if (DS18B20_Is((uint8_t*)&ds18b20[i].Address))
 			{
-				ds18b20[i].ValidDataFlag = DS18B20_Read(i, &ds18b20[i].Temperature); // Read single sensor
+				ds18b20[i].ValidDataFlag = DS18B20_Read(i, nullptr); // Read single sensor
 			}
 		}
 	}
@@ -262,7 +269,7 @@ uint8_t DS18B20_Quantity(void)
 	return TempSensorCount;
 }
 
-uint8_t DS18B20_GetTemperature(uint8_t number, float* destination)
+uint8_t DS18B20_GetTemperature(uint8_t number, int16_t *destination)
 {
 	if(!ds18b20[number].ValidDataFlag)
 		return 0;
@@ -271,6 +278,7 @@ uint8_t DS18B20_GetTemperature(uint8_t number, float* destination)
 	return 1;
 
 }
+
 
 void DS18B20_Init(DS18B20_Resolution_t resolution,  GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
 {
@@ -293,4 +301,13 @@ void DS18B20_Init(DS18B20_Resolution_t resolution,  GPIO_TypeDef* GPIOx, uint16_
 
 		DS18B20_StartAll(); // Start conversion on all sensors
 	}
+}
+
+void delayForConversion(uint8_t number)
+{
+	if( number >= TempSensorCount) {
+		return;
+	}
+
+	Delay_Ms( ( (uint32_t) 1 <<(DS18B20_GetResolution(number) - 9)) * DS18B20_CONV_TIME_9_BIT);		
 }

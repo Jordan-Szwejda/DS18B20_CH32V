@@ -112,8 +112,8 @@ void OneWire_WriteBit(OneWire_t* onewire, uint8_t bit)
 {
 	if (bit) // Send '1',
 	{
-		OneWire_OutputLow(onewire);	// Set the bus low
 		OneWire_BusOutputDirection(onewire);
+		OneWire_OutputLow(onewire);	// Set the bus low
 		OneWire_Delay(6);
 		
 		OneWire_BusInputDirection(onewire); // Release bus - bit high by pullup
@@ -121,8 +121,8 @@ void OneWire_WriteBit(OneWire_t* onewire, uint8_t bit)
 	} 
 	else // Send '0'
 	{
-		OneWire_OutputLow(onewire); // Set the bus low
 		OneWire_BusOutputDirection(onewire);
+		OneWire_OutputLow(onewire); // Set the bus low
 		OneWire_Delay(60);
 		
 		OneWire_BusInputDirection(onewire); // Release bus - bit high by pullup
